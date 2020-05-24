@@ -1,18 +1,43 @@
 //dependencias
 const url = require('url')
+const dataUser= require('../lib/data')
 //payload
 const payload= require('string_decoder').StringDecoder
 //enrutamiento de request retornar objeto json
 const enrutador={
     ejemplo:(data,callback)=>{
-        callback(200, {
-            mensaje:'Esto es una prueba'
-        })
+        callback(200, JSON.stringify({ mensaje:'Esto es una prueba' }))
+    },
+    usuarios: (data, callback)=>{
+        switch(getMethod(data)){
+            case 'get':
+                break
+            case 'post':
+                const identificador= 3
+                dataUser.crear(
+                    {
+                        directory:data.ruta,
+                        file:identificador,
+                        data: data.buffer
+                    },error => {
+                        if (error) callback(404,JSON.stringify({ mensaje:error }))
+                        else {
+                            callback(200, JSON.stringify({ mensaje:data.buffer }))
+                        }
+                    }
+                )
+                break
+            case 'put':
+                break
+            case 'delete':
+                break
+            default:
+                console.log(`METODO: ${getMethod(data)}`)
+                break
+        }
     },
     noEncontrado: (data, callback)=>{
-        callback(404,{
-            mensaje:'no encontrado'
-        })
+        callback(404,JSON.stringify({ mensaje:'no encontrado' }))
     }
 }
 
@@ -76,30 +101,10 @@ const server =(req, res)=>{
             handler=enrutador.noEncontrado
 
         handler(data, (statusCode=200, mensaje)=>{
-            const respuesta= JSON.stringify(mensaje)
             res.setHeader('content-type', 'application/json')
             res.writeHead(statusCode)
-            res.end(respuesta)
+            res.end(mensaje)
         })
-
-        switch(rutaLimpia){
-            case 'hola':
-                //enviar respuesta
-                res.end(`RUTA:${rutaLimpia}\nBUFFER: ${buffer}`)
-            break
-            case 'usuario':
-                //enviar respuesta
-                res.end(`RUTA:${rutaLimpia}\nBUFFER: ${buffer}`)
-            break
-            case 'noticia':
-                //enviar respuesta
-                res.end(`RUTA:${rutaLimpia}\nBUFFER: ${buffer}`)
-            break
-            default:
-                //enviar respuesta
-                res.end(`Default, RUTA:${rutaLimpia}\nBUFFER: ${buffer}`)
-        }
-
     })
     
 }
